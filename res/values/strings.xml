@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">android</string>
+    <string name="app_name">Search for Tweets</string>
+    <string name="set_preferences">Settings</string>
+    <string name="button_name">Search</string>
+    <string name="defaul_value_list_tweets_number_of">20</string>
 </resources>

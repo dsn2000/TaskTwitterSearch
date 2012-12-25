@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+         >
+    <PreferenceCategory
+            android:key="preferenceScreen"
+            android:title="Basic">
+        <CheckBoxPreference
+                android:title="Download image profile"
+                android:defaultValue="true"
+                android:key="checkboxDownloadImagePref" />
+        <CheckBoxPreference
+                android:title="Open tweets in browser"
+                android:defaultValue="false"
+                android:key="checkboxTweetsBrowserPref" />
+        <ListPreference
+                android:title="Number of simultaneously downloaded tweets"
+                android:key="listTweetsNumberOfPref"
+                android:defaultValue="@string/defaul_value_list_tweets_number_of"
+                android:entries="@array/tweets_number_of_array"
+                android:entryValues="@array/tweets_number_of_values" />
+    </PreferenceCategory>
+</PreferenceScreen>

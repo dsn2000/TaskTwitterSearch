@@ -3,20 +3,19 @@ package ru.task.ui;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.text.Editable;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import ru.task.R;
 import ru.task.image.ImageCache;
 import ru.task.image.*;
-import ru.task.json.*;
-import ru.task.utils.ObjectHttpResult;
-import ru.task.utils.Twitt;
+import ru.task.json.JsonReaderTwitterHttp;
+import ru.task.utils.*;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -33,18 +32,22 @@ public class TwittArrayAdapter extends ArrayAdapter<Twitt> implements ObjectHttp
 
     private Integer pageNumber = 1;
     private final JsonReaderTwitterHttp jsonReaderTwitterHttp;
-    public final static String EXTRA_MESSAGE_URL = "ru.task.ui.MESSAGE_URL";
-    private final Integer twittsInPage = 20;
     private final int resource;
     private final ImageManager mImageManager;
     private final String textSearch;
+    private final MsgBox msgBox;
+    private boolean fullList;
+    private String tweetsNumberOf;
+    private boolean tweetsBrowser;
+    private boolean downloadImage;
 
     public TwittArrayAdapter(Context context,
                              int resource,
                              List<Twitt> items,
-                             Editable textSearch) {
+                             String textSearch, MsgBox msgBox) {
         super(context, resource, items);
         this.resource = resource;
+        this.msgBox = msgBox;
         jsonReaderTwitterHttp = new JsonReaderTwitterHttp((Activity) context);
 
         ImageCache.ImageCacheParams cacheParams =
@@ -53,25 +56,52 @@ public class TwittArrayAdapter extends ArrayAdapter<Twitt> implements ObjectHttp
         mImageManager = new ImageManager(context);
         mImageManager.addImageCache(cacheParams);
         mImageManager.setImageFadeIn(true);
-        this.textSearch = textSearch.toString();
+        this.textSearch = textSearch;
+        fullList = false;
     }
-
 
     @Override
-    public void addHttpResult(Object result) {
+    public void addHttpResult(Object result, int type) {
         if (result != null) {
             List<Twitt> twitts = (List<Twitt>) result;
-            addAll(twitts);
+            if (twitts.size() != 0) {
+                addAll(twitts);
+            }
+            else {
+                fullList = true;
+            }
+        } else if (type == Message.NOT_INTERNET) {
+            msgBox.runMsgBox("No internet results ", "Exit", Message.NOT_INTERNET);
         }
+        ((MainActivity) getContext()).setProgressVisibility(false);
     }
 
-
-    static class ViewHolder {
+    public class ViewHolder implements ObjectHttpResult {
         ImageView iconView;
         TextView textView;
         Button webButton;
+        ProgressBar progressBar;
         int position;
+
+        public ImageView getIconView() {
+            return iconView;
+        }
+
+        public ProgressBar getProgressBar() {
+            return progressBar;
+        }
+
+        @Override
+        public void addHttpResult(Object bitmap, int type) {
+            if (bitmap != null) {
+                iconView.setImageBitmap((Bitmap) bitmap);
+                progressBar.setVisibility(ProgressBar.INVISIBLE);
+            } else if (type == Message.NOT_INTERNET) {
+                msgBox.runMsgBox("No internet results ", "Exit", Message.NOT_INTERNET);
+            }
+        }
     }
+
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -85,51 +115,76 @@ public class TwittArrayAdapter extends ArrayAdapter<Twitt> implements ObjectHttp
             holder.iconView = (ImageView) rowView.findViewById(R.id.imageView);
             holder.textView = (TextView) rowView.findViewById(R.id.textView);
             holder.webButton = (Button) rowView.findViewById(R.id.button);
+            holder.progressBar = (ProgressBar) rowView.findViewById(R.id.progressBar);
             holder.position = position;
             rowView.setTag(holder);
         } else {
             holder = (ViewHolder) rowView.getTag();
         }
-        mImageManager.loadImage(classInstance.getProfile_image_url(), holder.iconView);
+        if (downloadImage) {
+            holder.progressBar.setVisibility(ProgressBar.VISIBLE);
+            mImageManager.loadImage(classInstance.getProfileImageUrl(), holder);
+        }
+        else {
+            holder.progressBar.setVisibility(ProgressBar.INVISIBLE);
+            holder.getIconView().setImageBitmap(null);
+        }
         holder.webButton.setTag(classInstance.getUrl());
         holder.webButton.setOnClickListener(new View.OnClickListener() {
-
             @Override
-
             public void onClick(View v) {
                 Button webButton = (Button) v.findViewById(R.id.button);
                 String url = (String) webButton.getTag();
-
-                Intent intent = new Intent(webButton.getContext(), WebActivity.class);
-                intent.putExtra(EXTRA_MESSAGE_URL, url);
+                Intent intent;
+                if (tweetsBrowser) {
+                    intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                }
+                else {
+                    url += "/actions";
+                    intent = new Intent(webButton.getContext(), WebActivity.class);
+                    intent.putExtra(Message.EXTRA_MESSAGE_URL, url);
+                }
                 webButton.getContext().startActivity(intent);
             }
-
         });
 
         holder.textView.setText(classInstance.getText());
-        if (position > getCount() - 2) {
-            System.out.println(position);
+        if (position > getCount() - 2  && !fullList) {
             addTwitts();
         }
 
         return rowView;
     }
 
-
     public void addTwitts() {
-
+        ((MainActivity) getContext()).setProgressVisibility(true);
         String queryUtf8 = null;
         try {
             queryUtf8 = URLEncoder.encode(textSearch, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
+            msgBox.runMsgBox("Bad query ", "OK", Message.BAD_QUERY);
         }
-        System.out.println(queryUtf8);
-        jsonReaderTwitterHttp.downloadUrl("http://search.twitter.com/search.json?q=" + queryUtf8 + "&rpp=" + twittsInPage.toString() +"&include_entities=false&result_type=mixed&page=" + pageNumber, this);
+        jsonReaderTwitterHttp.downloadUrl("http://search.twitter.com/search.json?q=" + queryUtf8 + "&rpp=" + tweetsNumberOf + "&include_entities=false&result_type=mixed&page=" + pageNumber, this);
 
         pageNumber++;
     }
 
-}
+    public void getPrefsВownloadImage() {
+        SharedPreferences prefs = PreferenceManager.
+                getDefaultSharedPreferences(getContext());
+        downloadImage = prefs.getBoolean(Preferences.CHECKBOX_DOWNLOAD_IMAGE_PREF, true);
+    }
 
+    public void getPrefsTweetsBrowser() {
+        SharedPreferences prefs = PreferenceManager.
+                getDefaultSharedPreferences(getContext());
+        tweetsBrowser = prefs.getBoolean(Preferences.CHECKBOX_TWEETS_BROWSER_PREF, false);
+  }
+
+    public void getPrefsTweetsNumberOf() {
+        SharedPreferences prefs = PreferenceManager.
+                getDefaultSharedPreferences(getContext());
+        tweetsNumberOf = prefs.getString(Preferences.LIST_TWEETS_NUMBEROF_PREF, "20");
+    }
+}

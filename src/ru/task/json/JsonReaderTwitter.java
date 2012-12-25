@@ -26,23 +26,18 @@ public class JsonReaderTwitter {
 
     private static List<Twitt> readJsonStream(InputStream is) throws IOException {
         Reader isReader = new InputStreamReader(is, "UTF-8");
-
         JsonReader reader = new JsonReader(isReader);
-
         return readMessagesArray(reader);
     }
 
     private static List<Twitt> readMessagesArray(JsonReader reader) throws IOException {
-
         List<Twitt> twitts = new LinkedList<Twitt>();
         reader.beginObject();
         String tag = reader.nextName();
         while (!tag.equals("results")) {
             reader.skipValue();
             tag = reader.nextName();
-            System.out.println(tag);
         }
-
         reader.beginArray();
         while (reader.hasNext()) {
             twitts.add(readMessage(reader));
@@ -65,7 +60,6 @@ public class JsonReaderTwitter {
                 id_str = reader.nextString();
             } else if (name.equals("from_user")) {
                 user = reader.nextString();
-                System.out.println(user);
             } else if (name.equals("profile_image_url")) {
                 profile_image_url = reader.nextString();
             } else if (name.equals("text")) {
@@ -75,8 +69,7 @@ public class JsonReaderTwitter {
             }
         }
         reader.endObject();
-
-        url = "https://mobile.twitter.com/" + user + "/status/" + id_str + "/actions";
+        url = "https://mobile.twitter.com/" + user + "/status/" + id_str;
         return new Twitt(profile_image_url, text, url);
     }
 }

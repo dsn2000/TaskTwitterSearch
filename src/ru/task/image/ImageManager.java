@@ -14,6 +14,7 @@ import android.os.Build;
 import android.util.Log;
 import android.widget.ImageView;
 import ru.task.BuildConfig;
+import ru.task.ui.TwittArrayAdapter;
 import ru.task.utils.HttpSocket;
 
 import java.io.IOException;
@@ -27,7 +28,7 @@ import java.lang.ref.WeakReference;
  * Time: 21:26
  * To change this template use File | Settings | File Templates.
  */
-public class ImageManager extends HttpSocket<Bitmap, ImageView> {
+public class ImageManager extends HttpSocket<Bitmap> {
     private static final String TAG = "ImageManager";
     private static final int FADE_IN_TIME = 200;
 
@@ -44,7 +45,7 @@ public class ImageManager extends HttpSocket<Bitmap, ImageView> {
     }
 
 
-    public void loadImage(Object data, ImageView imageView) {
+    public void loadImage(Object data, TwittArrayAdapter.ViewHolder holder) {
         if (data == null) {
             return;
         }
@@ -55,11 +56,11 @@ public class ImageManager extends HttpSocket<Bitmap, ImageView> {
         }
 
         if (bitmap != null) {
-            imageView.setImageBitmap(bitmap);
-        } else if (cancelPotentialWork(data, imageView)) {
-            final HttpSocketAsyncTask task = new HttpSocketAsyncTask<String, Void, Bitmap, ImageView>(imageView);
+            holder.addHttpResult(bitmap, 0);
+        } else if (cancelPotentialWork(data, holder.getIconView())) {
+            final HttpSocketAsyncTask task = new HttpSocketAsyncTask<String, Void, Bitmap>(holder);
             final AsyncDrawable asyncDrawable = new AsyncDrawable(mResources, mLoadingBitmap, task);
-            imageView.setImageDrawable(asyncDrawable);
+            holder.getIconView().setImageDrawable(asyncDrawable);
             task.execute(data);
         }
     }
@@ -104,28 +105,26 @@ public class ImageManager extends HttpSocket<Bitmap, ImageView> {
 
     @Override
     protected Bitmap readerInputStream(InputStream is, HttpSocketAsyncTask httpSocketAsyncTask) throws IOException {
+        Object imageObject = httpSocketAsyncTask.getAttachedObjectForResult();
+        if (imageObject != null) {
+            Bitmap bitmap = null;
+            ImageView imageView = ((TwittArrayAdapter.ViewHolder) imageObject).getIconView();
+            final HttpSocketAsyncTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
 
-        Bitmap bitmap = null;
-        ImageView imageView = (ImageView) httpSocketAsyncTask.getAttachedObjectForResult();
-        final HttpSocketAsyncTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
+            if (bitmapWorkerTask == httpSocketAsyncTask) {
+                bitmap = BitmapFactory.decodeStream(is);
+            }
 
-        if (bitmapWorkerTask == httpSocketAsyncTask) {
-            bitmap = BitmapFactory.decodeStream(is);
+            if (bitmap != null && mImageCache != null) {
+                mImageCache.addBitmapToCache((String) httpSocketAsyncTask.getData(), bitmap);
+            }
+            return bitmap;
         }
-
-        if (bitmap != null && mImageCache != null) {
-            mImageCache.addBitmapToCache((String) httpSocketAsyncTask.getData(), bitmap);
+        else {
+            httpSocketAsyncTask.cancel(true);
         }
-        return bitmap;
+        return null;
     }
-
-    @Override
-    protected void getHttpResult(Bitmap bitmap, ImageView imageView) {
-        if (bitmap != null && imageView != null) {
-            setImageBitmap(imageView, bitmap);
-        }
-    }
-
 
     private static class AsyncDrawable extends BitmapDrawable {
         private final WeakReference<HttpSocketAsyncTask> bitmapWorkerTaskReference;
@@ -138,27 +137,6 @@ public class ImageManager extends HttpSocket<Bitmap, ImageView> {
 
         public HttpSocketAsyncTask getBitmapWorkerTask() {
             return bitmapWorkerTaskReference.get();
-        }
-    }
-
-
-    private void setImageBitmap(ImageView imageView, Bitmap bitmap) {
-        if (mFadeInBitmap) {
-            // Transition drawable with a transparent drawable and the final bitmap
-            final TransitionDrawable td =
-                    new TransitionDrawable(new Drawable[]{
-                            new ColorDrawable(android.R.color.transparent),
-                            new BitmapDrawable(mResources, bitmap)
-                    });
-
-            // Set background to loading bitmap
-            imageView.setBackgroundDrawable(
-                    new BitmapDrawable(mResources, mLoadingBitmap));
-
-            imageView.setImageDrawable(td);
-            td.startTransition(FADE_IN_TIME);
-        } else {
-            imageView.setImageBitmap(bitmap);
         }
     }
 }

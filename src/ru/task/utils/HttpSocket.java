@@ -19,8 +19,7 @@ import java.net.URL;
  * Time: 18:22
  * To change this template use File | Settings | File Templates.
  */
-public abstract class HttpSocket<Result_, ObjectForResult_> {
-
+public abstract class HttpSocket<Result_> {
 
     private final Activity context;
 
@@ -28,41 +27,39 @@ public abstract class HttpSocket<Result_, ObjectForResult_> {
         this.context = context;
     }
 
-    public void downloadUrl(String stringUrl, ObjectForResult_ objectForResult) {
+    public void downloadUrl(String stringUrl, ObjectHttpResult objectForResult) {
 
         ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         if (networkInfo != null && networkInfo.isConnected()) {
-            HttpSocketAsyncTask download = new HttpSocketAsyncTask<String, Void, Result_, ObjectForResult_>(objectForResult);
+            HttpSocketAsyncTask download = new HttpSocketAsyncTask<String, Void, Result_>(objectForResult);
             download.execute(stringUrl);
         } else {
-            System.out.println("No network connection available.");
+            objectForResult.addHttpResult(null, Message.NOT_INTERNET);
         }
     }
 
     protected abstract Result_ readerInputStream(InputStream is, HttpSocketAsyncTask httpSocketAsyncTask) throws IOException;
 
-    protected abstract void getHttpResult(Result_ result, ObjectForResult_ objectForResult);
-
-
-    protected class HttpSocketAsyncTask<Params, Progress, Result, ObjectForResult> extends AsyncTask<Params, Progress, Result> {
+    protected class HttpSocketAsyncTask<Params, Progress, Result> extends AsyncTask<Params, Progress, Result> {
         private Object data;
-        private final WeakReference<ObjectForResult> objectForResult;
+        private final WeakReference<ObjectHttpResult> objectHttpResult;
+        private int error = 0;
 
         public Object getData() {
             return data;
         }
 
-
-        public HttpSocketAsyncTask(ObjectForResult objectForResult) {
-            this.objectForResult = new WeakReference<ObjectForResult>(objectForResult);
+        public HttpSocketAsyncTask(ObjectHttpResult objectHttpResult) {
+            this.objectHttpResult = new WeakReference<ObjectHttpResult>(objectHttpResult);
         }
 
         @Override
         protected void onPostExecute(Result result) {
-            if (!isCancelled()) {
-                getHttpResult((Result_) result, (ObjectForResult_) objectForResult.get());
+            ObjectHttpResult objectHttpResultRef = objectHttpResult.get();
+            if (objectHttpResultRef != null) {
+                objectHttpResultRef.addHttpResult(result, error);
             }
         }
 
@@ -71,10 +68,10 @@ public abstract class HttpSocket<Result_, ObjectForResult_> {
 
             try {
                 data = objects[0];
-                //final String dataString = String.valueOf(data);
                 return downloadUrl(objects[0]);
             } catch (IOException e) {
-                System.out.println("Unable to retrieve web page. URL may be invalid.");
+                e.printStackTrace();
+                error = Message.NOT_INTERNET;
                 return null;
             }
 
@@ -96,8 +93,6 @@ public abstract class HttpSocket<Result_, ObjectForResult_> {
                     // Starts the query
                     conn.connect();
                     int response = conn.getResponseCode();
-                    System.out.println(response);
-
                     is = conn.getInputStream();
 
                     return (Result) readerInputStream(is, this);
@@ -115,9 +110,9 @@ public abstract class HttpSocket<Result_, ObjectForResult_> {
             return null;
         }
 
-        public ObjectForResult getAttachedObjectForResult() {
+        public ObjectHttpResult getAttachedObjectForResult() {
 
-            return objectForResult.get();
+            return objectHttpResult.get();
         }
     }
 

@@ -34,7 +34,7 @@ public class ImageCache {
 
                 @Override
                 protected int sizeOf(String key, Bitmap bitmap) {
-                    return getBitmapSize(bitmap);
+                    return bitmap.getByteCount();
                 }
             };
         }
@@ -85,14 +85,4 @@ public class ImageCache {
                     Context.ACTIVITY_SERVICE)).getMemoryClass();
         }
     }
-
-    @TargetApi(12)
-    public static int getBitmapSize(Bitmap bitmap) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1) {
-            return bitmap.getByteCount();
-        }
-        return bitmap.getRowBytes() * bitmap.getHeight();
-    }
-
-   //
 }

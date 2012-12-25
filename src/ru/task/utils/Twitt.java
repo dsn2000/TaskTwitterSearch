@@ -9,18 +9,18 @@ package ru.task.utils;
  */
 public class Twitt {
 
-    private final String profile_image_url;
+    private final String profileImageUrl;
     private final String text;
     private final String url;
 
-    public Twitt(String profile_image_url, String text, String url) {
-        this.profile_image_url = profile_image_url;
+    public Twitt(String profileImageUrl, String text, String url) {
+        this.profileImageUrl = profileImageUrl;
         this.text = text;
         this.url = url;
     }
 
-    public String getProfile_image_url() {
-        return profile_image_url;
+    public String getProfileImageUrl() {
+        return profileImageUrl;
     }
 
     public String getUrl() {

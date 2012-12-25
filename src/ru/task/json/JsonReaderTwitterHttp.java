@@ -18,11 +18,10 @@ import java.util.List;
  */
 
 
-public class JsonReaderTwitterHttp extends HttpSocket<List<Twitt>, TwittArrayAdapter> {
+public class JsonReaderTwitterHttp extends HttpSocket<List<Twitt>> {
 
     public JsonReaderTwitterHttp(Activity context) {
         super(context);
-
     }
 
     @Override
@@ -30,10 +29,5 @@ public class JsonReaderTwitterHttp extends HttpSocket<List<Twitt>, TwittArrayAda
         return JsonReaderTwitter.readInputStream(is);
     }
 
-
-    @Override
-    protected void getHttpResult(List<Twitt> twitts, TwittArrayAdapter twittArrayAdapter) {
-        twittArrayAdapter.addHttpResult(twitts);
-    }
 }
 

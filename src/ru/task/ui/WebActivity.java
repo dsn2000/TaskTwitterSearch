@@ -10,6 +10,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 import ru.task.R;
+import ru.task.utils.Message;
 
 /**
  * Created with IntelliJ IDEA.
@@ -25,14 +26,11 @@ public class WebActivity extends Activity {
         setContentView(R.layout.web);
 
         Intent intent = getIntent();
-        String url = intent.getStringExtra(TwittArrayAdapter.EXTRA_MESSAGE_URL);
-        System.out.println(url);
+        String url = intent.getStringExtra(Message.EXTRA_MESSAGE_URL);
 
         WebView myWebView = (WebView) findViewById(R.id.webview);
         WebSettings webSettings = myWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         myWebView.loadUrl(url);
-
     }
-
 }
