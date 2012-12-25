@@ -11,7 +11,10 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import ru.task.R;
-import ru.task.utils.*;
+import ru.task.utils.ActivityMsgBox;
+import ru.task.utils.Message;
+import ru.task.utils.MsgBox;
+import ru.task.utils.Twitt;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,8 +48,7 @@ public class MainActivity extends Activity implements ActivityMsgBox {
         msgBox = new MsgBox(this, getResources().getString(R.string.app_name));
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB_MR1) {
             msgBox.runMsgBox("This version android is not supported ", "Exit", Message.NOT_SUPPORTED);
-        }
-        else {
+        } else {
             footer = createFooter();
             listView = (ListView) findViewById(R.id.listView);
             listView.addFooterView(footer);
@@ -61,8 +63,7 @@ public class MainActivity extends Activity implements ActivityMsgBox {
         if (status) {
             mProgress.setVisibility(ProgressBar.VISIBLE);
             mProgressFooter.setVisibility(ProgressBar.VISIBLE);
-        }
-        else {
+        } else {
             mProgress.setVisibility(ProgressBar.INVISIBLE);
             mProgressFooter.setVisibility(ProgressBar.INVISIBLE);
         }
@@ -86,23 +87,21 @@ public class MainActivity extends Activity implements ActivityMsgBox {
             adapter.getPrefsTweetsNumberOf();
             adapter.addTwitts();
             listView.setAdapter(adapter);
-        }
-        else {
+        } else {
             msgBox.runMsgBox("Search query is empty ", "OK", Message.SEARCH_QUERY_EMPTY);
         }
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event)
-    {
-        if (keyCode == KeyEvent.KEYCODE_SETTINGS || keyCode == KeyEvent.KEYCODE_MENU)
-        {
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_SETTINGS || keyCode == KeyEvent.KEYCODE_MENU) {
             Intent settingsActivity = new Intent(this, Preferences.class);
             startActivityForResult(settingsActivity, Message.REQUEST_CODE_SETTING);
             return true;
         }
         return super.onKeyDown(keyCode, event);
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK && adapter != null) {
@@ -127,19 +126,19 @@ public class MainActivity extends Activity implements ActivityMsgBox {
 
     @Override
     public void action(int type) {
-        switch(type) {
+        switch (type) {
             case Message.NOT_SUPPORTED:
                 finish();
-            break;
+                break;
             case Message.NOT_INTERNET:
                 finish();
-            break;
+                break;
             case Message.BAD_QUERY:
                 EditText editText = (EditText) findViewById(R.id.editText);
                 editText.setText("");
-            break;
+                break;
             case Message.SEARCH_QUERY_EMPTY:
-            break;
+                break;
         }
     }
 }

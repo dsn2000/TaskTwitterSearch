@@ -13,9 +13,12 @@ import android.view.ViewGroup;
 import android.widget.*;
 import ru.task.R;
 import ru.task.image.ImageCache;
-import ru.task.image.*;
+import ru.task.image.ImageManager;
 import ru.task.json.JsonReaderTwitterHttp;
-import ru.task.utils.*;
+import ru.task.utils.Message;
+import ru.task.utils.MsgBox;
+import ru.task.utils.ObjectHttpResult;
+import ru.task.utils.Twitt;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -66,8 +69,7 @@ public class TwittArrayAdapter extends ArrayAdapter<Twitt> implements ObjectHttp
             List<Twitt> twitts = (List<Twitt>) result;
             if (twitts.size() != 0) {
                 addAll(twitts);
-            }
-            else {
+            } else {
                 fullList = true;
             }
         } else if (type == Message.NOT_INTERNET) {
@@ -124,8 +126,7 @@ public class TwittArrayAdapter extends ArrayAdapter<Twitt> implements ObjectHttp
         if (downloadImage) {
             holder.progressBar.setVisibility(ProgressBar.VISIBLE);
             mImageManager.loadImage(classInstance.getProfileImageUrl(), holder);
-        }
-        else {
+        } else {
             holder.progressBar.setVisibility(ProgressBar.INVISIBLE);
             holder.getIconView().setImageBitmap(null);
         }
@@ -138,8 +139,7 @@ public class TwittArrayAdapter extends ArrayAdapter<Twitt> implements ObjectHttp
                 Intent intent;
                 if (tweetsBrowser) {
                     intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                }
-                else {
+                } else {
                     url += "/actions";
                     intent = new Intent(webButton.getContext(), WebActivity.class);
                     intent.putExtra(Message.EXTRA_MESSAGE_URL, url);
@@ -149,7 +149,7 @@ public class TwittArrayAdapter extends ArrayAdapter<Twitt> implements ObjectHttp
         });
 
         holder.textView.setText(classInstance.getText());
-        if (position > getCount() - 2  && !fullList) {
+        if (position > getCount() - 2 && !fullList) {
             addTwitts();
         }
 
@@ -173,14 +173,15 @@ public class TwittArrayAdapter extends ArrayAdapter<Twitt> implements ObjectHttp
     public void getPrefsВownloadImage() {
         SharedPreferences prefs = PreferenceManager.
                 getDefaultSharedPreferences(getContext());
-        downloadImage = prefs.getBoolean(Preferences.CHECKBOX_DOWNLOAD_IMAGE_PREF, true);
+        downloadImage =
+                prefs.getBoolean(Preferences.CHECKBOX_DOWNLOAD_IMAGE_PREF, true);
     }
 
     public void getPrefsTweetsBrowser() {
         SharedPreferences prefs = PreferenceManager.
                 getDefaultSharedPreferences(getContext());
         tweetsBrowser = prefs.getBoolean(Preferences.CHECKBOX_TWEETS_BROWSER_PREF, false);
-  }
+    }
 
     public void getPrefsTweetsNumberOf() {
         SharedPreferences prefs = PreferenceManager.

@@ -1,14 +1,10 @@
 package ru.task.ui;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
-import android.widget.Toast;
 import ru.task.R;
 import ru.task.utils.Message;
 

@@ -26,11 +26,9 @@ public class Preferences extends PreferenceActivity implements SharedPreferences
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (key.equals(CHECKBOX_DOWNLOAD_IMAGE_PREF)) {
             intent.putExtra(CHECKBOX_DOWNLOAD_IMAGE_PREF, true);
-        }
-        else if (key.equals(CHECKBOX_TWEETS_BROWSER_PREF)) {
+        } else if (key.equals(CHECKBOX_TWEETS_BROWSER_PREF)) {
             intent.putExtra(CHECKBOX_TWEETS_BROWSER_PREF, true);
-        }
-        else if (key.equals(LIST_TWEETS_NUMBEROF_PREF)) {
+        } else if (key.equals(LIST_TWEETS_NUMBEROF_PREF)) {
             intent.putExtra(LIST_TWEETS_NUMBEROF_PREF, true);
         }
     }

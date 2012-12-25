@@ -1,7 +1,6 @@
 package ru.task.json;
 
 import android.app.Activity;
-import ru.task.ui.TwittArrayAdapter;
 import ru.task.utils.HttpSocket;
 import ru.task.utils.Twitt;
 

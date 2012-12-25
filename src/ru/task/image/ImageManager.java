@@ -6,14 +6,8 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.TransitionDrawable;
-import android.os.AsyncTask;
-import android.os.Build;
-import android.util.Log;
 import android.widget.ImageView;
-import ru.task.BuildConfig;
 import ru.task.ui.TwittArrayAdapter;
 import ru.task.utils.HttpSocket;
 
@@ -119,8 +113,7 @@ public class ImageManager extends HttpSocket<Bitmap> {
                 mImageCache.addBitmapToCache((String) httpSocketAsyncTask.getData(), bitmap);
             }
             return bitmap;
-        }
-        else {
+        } else {
             httpSocketAsyncTask.cancel(true);
         }
         return null;
